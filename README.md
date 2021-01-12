@@ -1,8 +1,8 @@
 # ediSON
 ###### *by Carlos Hernandez, Eisuke Hirota, Amit Prasad, Period 10*
 
-## What is __ediSON?__
-##### A glorified JSON text editor. A J__SON__ __edi__tor. (add more)
+## What is ediSON?
+##### A glorified JSON text editor. A J"SON" "edi"tor. (add more)
 
 ## How did we make it?
 ### Topics used:
