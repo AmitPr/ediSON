@@ -1,8 +1,8 @@
 # ediSON
-###### by Carlos Hernandez, Eisuke Hirota, Amit Prasad, period 10
+###### *by Carlos Hernandez, Eisuke Hirota, Amit Prasad, period 10*
 
-## What is *ediSON?*
-##### A glorified JSON text editor. (add more)
+## What is **ediSON?**
+##### A glorified JSON text editor. A J**SON** **edi**tor. (add more)
 
 ## How did we make it?
 ### Topics used:
