@@ -6,10 +6,10 @@
 
 ## How did we make it?
 ### Topics used:
-* Files
-* Memory Allocation
-* File stats
-* Signals
+* Files - Reading, Parsing, and Serializing to/from files.
+* Memory Allocation - Allocating memory to represent JSON at runtime
+* File stats - Displaying useful information such as last modified time, and file size.
+* Signals - CLI Editor should ask to save before exiting, and be able to intercept other signals gracefully.
 
 ### Breakdown of who did what:
 Amit
