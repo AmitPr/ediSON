@@ -13,11 +13,14 @@
 
 ### Breakdown of who did what:
 Amit
-* JSON Parser/Serializer
+* JSON Parser/Serializer  
+
 Eisuke
-* CLI Editor
+* CLI Editor  
+
 Carlos
-* Working with files
+* Working with files  
+
 ### Data Structures used:
 * Structs for JSON Nodes
 * Array Lists for JSON Arrays
