@@ -2,7 +2,7 @@
 ###### *by Carlos Hernandez, Eisuke Hirota, Amit Prasad, Period 10*
 
 ## What is ediSON?
-##### A glorified JSON text editor. A J*SON* *edi*tor.
+##### A glorified JSON text editor. A J<ins>SON</ins> <ins>edit</ins>tor.
 JSON, or JavaScript Object Notation, is a format that has widespread use in various technologies, most notably, the web. Our project is an editor for JSON files written in C so that users can edit, parse, and serialize JSON files with ease.
 
 ## How did we make it?
