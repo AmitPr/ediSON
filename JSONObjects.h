@@ -1,5 +1,17 @@
 #include <stdbool.h>
-enum JSONTypes { object, array, string, number, boolean, nil };
+#include <stdio.h>
+#include <stdlib.h>
+#include "utils.h"
+enum JSONTypes { V_object, V_array, V_string, V_number, V_boolean, V_nil };
+
+union JSONValuePtr {
+    struct JSONArray* array;
+    struct JSONObject* obj;
+    char* str;
+    long double* number;
+    bool* boolean;
+    int* nilptr;
+};
 /**
  * JSONValue is a struct that contains a value that can be stored in JSONObjects
  * or JSONArrays The size of a JSONValue in memory is constant no matter what is
@@ -9,15 +21,12 @@ enum JSONTypes { object, array, string, number, boolean, nil };
  */
 typedef struct JSONValue {
     enum JSONTypes type;
-    union value {
-        JSONObject* obj;
-        char** str;
-        long double* number;
-        bool* boolean;
-        int* nilptr;
-    };
-};
-typedef struct JSONObject {
-    char* keys[];
-    JSONValue* values[];
-};
+    union JSONValuePtr value;
+} JSONValue;
+typedef struct JSONArray {
+    struct JSONValue** values;
+} JSONArray;
+
+struct JSONValue* createJSONValue(enum JSONTypes type, union JSONValuePtr val);
+struct JSONArray* createJSONArray(int initialSize);
+struct JSONValue* parseValue(char** buf);

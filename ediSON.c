@@ -1,20 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "JSONObjects.h"
 #include "string.h"
-
-#define WHITESPACE " \r\n\t"
-
-void match_whitespace(char** buf) {
-    while (strchr(WHITESPACE, **buf)) {
-        ++(*buf);
-    }
-}
+#include "utils.h"
 
 int main() {
+    union JSONValuePtr data;
+    data.str = "Hello World";
+    struct JSONValue* test = createJSONValue(V_string, data);
+    printf("%s\n", test->value);
+
     FILE* fp;
     char* buf = NULL;
-    fp = fopen("./example.json", "rb");
+    fp = fopen("./exampleArray.json", "rb");
     long length;
     if (fp) {
         // Go to the end of the file to get the length of the file
@@ -28,12 +27,24 @@ int main() {
         fclose(fp);
     }
     if (buf) {
-        match_whitespace(&buf);
-        if(buf[0]=='{'){
+        skipWhitespace(&buf);
+        if (*buf == '{') {
             ++buf;
-            match_whitespace(&buf);
-            printf("%s:\n",buf);
-        }else{
+            skipWhitespace(&buf);
+            printf("%s:\n", buf);
+        } else if (*buf == '[') {
+            ++buf;
+            while (*buf && *buf != ']') {
+                skipWhitespace(&buf);
+                int i = getValueLength(buf);
+                char sub[i + 1];
+                strncpy(sub, buf, i);
+                sub[i] = '\0';
+                printf("len: %d, str: %s\n", i, sub);
+                buf += i;
+                ++buf;
+            }
+        } else {
             printf("malformed JSON\n");
         }
     }
