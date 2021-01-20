@@ -2,5 +2,11 @@
     1,
     2.5,
     3,
-    "Hello World"
+    true,
+    false,
+    null,
+    "Hello, World",
+    "Hello, \"Wo,rld",
+    [1,2,"Inside Array",4,5],
+    44
 ]
