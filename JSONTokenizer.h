@@ -17,9 +17,9 @@ enum JSONTypes {
 /**
  * Utility array to convert between JSONTypes(integer) and the string equiv.
  */
-static const char* JSONTypeNames[] = {
+/*static const char* JSONTypeNames[] = {
     "object", "array", "string", "number", "boolean", "null",
-};
+};*/
 /**
  * JSONToken used to tokenize an input JSON string. Basically used to reference
  * where in the string the Token is.
@@ -41,3 +41,4 @@ struct JSONToken* createEmptyToken();
 void printJSON(struct JSONToken* object, char** str);
 void printHelper(struct JSONToken* object, char** str, int indent);
 void printIndent(int indent);
+void freeJSON(struct JSONToken* object);

@@ -17,7 +17,13 @@ int main() {
         fseek(fp, 0, SEEK_SET);
         buf = (char*)malloc(length + 1);
         if (buf) {
-            int i = fread(buf, 1, length, fp);
+            if(!fread(buf, 1, length, fp)){
+                printf("Error reading in file.\n");
+                return 1;
+            }
+        }else{
+            printf("Error allocating memory for file buffer\n");
+            return 1;
         }
         fclose(fp);
         buf[length] = '\0';
@@ -26,7 +32,7 @@ int main() {
         char* str = buf;
         struct JSONToken* json = parseJSON(&str);
         printJSON(json,&buf);
-        free(json);
+        freeJSON(json);
     }
     free(buf);
     return 0;

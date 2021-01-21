@@ -55,6 +55,10 @@ int tokenize(char** str, uint* position, struct JSONToken* token) {
             }
             last = curPair;
         }
+        if(**str=='}'){
+            ++(*str);
+            ++(*position);
+        }
     } else if (first == '[') {
         token->type = TYPE_array;
         struct JSONToken* last = NULL;
@@ -83,6 +87,10 @@ int tokenize(char** str, uint* position, struct JSONToken* token) {
                 token->child = curVal;
             }
             last = curVal;
+        }
+        if(**str==']'){
+            ++(*str);
+            ++(*position);
         }
     } else {
         return 0;
@@ -173,49 +181,55 @@ int tokenizeValue(struct JSONToken* token, char** str, uint* position) {
     return 1;
 }
 
+void freeJSON(struct JSONToken* object){
+    if(object->child){
+        freeJSON(object->child);
+    }
+    if(object->next){
+        freeJSON(object->next);
+    }
+    free(object);
+}
+
 void printJSON(struct JSONToken* object, char** str) {
     printHelper(object, str, 0);
 }
 void printHelper(struct JSONToken* object, char** str, int indent) {
+    printIndent(indent);
+    if (object->keyEnd != -1) {
+        printf("\"%.*s\": ", object->keyEnd - object->keyStart,
+               (*str) + object->keyStart);
+    }
     switch (object->type) {
         case TYPE_object:
             if (object->child) {
-                printIndent(indent);
                 printf("{\n");
                 printHelper(object->child, str, indent + 1);
                 printIndent(indent);
-                printf("}\n");
+                printf("}");
             } else {
-                printIndent(indent);
-                printf("{}\n");
+                printf("{}");
             }
             break;
         case TYPE_array:
             if (object->child) {
-                printIndent(indent);
                 printf("[\n");
                 printHelper(object->child, str, indent + 1);
                 printIndent(indent);
-                printf("]\n");
+                printf("]");
             } else {
-                printIndent(indent);
-                printf("[]\n");
+                printf("[]");
             }
             break;
         default:
-            printIndent(indent);
-            if (object->keyEnd != -1) {
-                printf("\"%.*s\": ", object->keyEnd - object->keyStart,
-                       (*str) + object->keyStart);
-            }
             printf("%.*s", object->end - object->start, (*str) + object->start);
-            if (object->next) {
-                printf(",\n");
-                printHelper(object->next, str, indent);
-            } else {
-                printf("\n");
-            }
             break;
+    }
+    if (object->next) {
+        printf(",\n");
+        printHelper(object->next, str, indent);
+    } else {
+        printf("\n");
     }
 }
 
