@@ -1,0 +1,10 @@
+{
+    "boolT": true,
+    "boolF": false,
+    "nil": null,
+    "string": "hello!",
+    "name": "example",
+    "ext": "json",
+    "array": ["Inside","Array"],
+    "":""
+}

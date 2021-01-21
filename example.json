@@ -12,6 +12,7 @@
         4,
         "str"
     ],
-    "boolean": true,
+    "booleanT": true,
+    "booleanF": false,
     "null": null
 }

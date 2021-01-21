@@ -5,9 +5,10 @@
 #define VAL_END_CHARS ",\n\r\n "
 #define OBJECT_END_CHARS "]}"
 
-void skipWhitespace(char** buf) {
-    while (strchr(WHITESPACE, **buf)) {
+void skipWhitespace(char** buf, uint* position) {
+    while (**buf && strchr(WHITESPACE, **buf)) {
         ++(*buf);
+        ++(*position);
     }
 }
 
@@ -24,7 +25,7 @@ int getValueLength(char* buf) {
         } else if (strchr("[{", *buf) && !inString) {
             ++childDepth;
         }
-        if(!childDepth || (chr && !inString && childDepth==1)){
+        if (!childDepth || (chr && !inString && childDepth == 1)) {
             break;
         }
         // Only check for strings with " that aren't escaped, and that are in
@@ -45,9 +46,34 @@ int getValueLength(char* buf) {
     return len;
 }
 
-
-int getKeyLength(char* buf) {
-    
+uint skipKey(char** buf, uint* position) {
+    uint ret = NULL;
+    bool escaped = false;
+    while (true) {
+        if (**buf == '"' && !escaped) {
+            ret=*position;
+            ++(*position);
+            ++(*buf);
+            break;
+        }
+        escaped = false;
+        if (**buf == '\\') {
+            escaped = true;
+        }
+        ++(*position);
+        ++(*buf);
+        if (!(**buf)) {
+            break;
+        }
+    }
+    skipWhitespace(buf, position);
+    if (**buf != ':') {
+        return NULL;
+    }
+    ++(*buf);
+    ++(*position);
+    skipWhitespace(buf, position);
+    return ret;
 }
 
 bool isNumeric(char* str) {
