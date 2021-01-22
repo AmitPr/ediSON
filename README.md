@@ -38,4 +38,12 @@ Carlos
 *N/A*
 
 ## DEVLOG
-*empty*
+* 1/14: Finished reading in files to string, started working on JSON Parser (Amit)
+* 1/17: Finish working on basic JSON Parser - Just objects, not arrays. (Amit)
+* 1/17: Start working on CLI text editor (Eisuke & Karl)
+* 1/18: Finish working on JSON array parser, as well as nested objects and arrays (Amit)
+* 1/19: Adding comments to texteditor, continue fleshing it out (Eisuke & Karl)
+* 1/19: Realize that the JSON Parser is fundamentally flawed after 4 hours of bug fixing (Amit)
+* 1/20: Continued working on texteditor (Karl)
+* 1/20: Start rewriting JSON Parser to use a tokenizer-like model instead (Uses less memory, simpler, more powerful) (Amit)
+* 1/21: Finish writing JSON Tokenizer for everything but numbers, bug fixes on tokenizer (Amit)
