@@ -8,7 +8,7 @@
 int main() {
     FILE* fp;
     char* buf = NULL;
-    fp = fopen("./example2.json", "rb");
+    fp = fopen("./example.json", "rb");
     long length;
     if (fp) {
         // Go to the end of the file to get the length of the file

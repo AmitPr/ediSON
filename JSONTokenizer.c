@@ -55,7 +55,7 @@ int tokenize(char** str, uint* position, struct JSONToken* token) {
             }
             last = curPair;
         }
-        if(**str=='}'){
+        if (**str == '}') {
             ++(*str);
             ++(*position);
         }
@@ -88,7 +88,7 @@ int tokenize(char** str, uint* position, struct JSONToken* token) {
             }
             last = curVal;
         }
-        if(**str==']'){
+        if (**str == ']') {
             ++(*str);
             ++(*position);
         }
@@ -176,16 +176,54 @@ int tokenizeValue(struct JSONToken* token, char** str, uint* position) {
             break;
         // Number, or malformed.
         default:
+            token->type = TYPE_number;
+            token->start = *position;
+            bool leadingDigits = false;
+            char first = **str;
+            if (!strchr("+-0123456789.", first)) return 0;
+            if (strchr("-+0123456789", first)) {
+                if (strchr("0123456789", **str)) {
+                    leadingDigits = true;
+                }
+                ++(*str);
+                ++(*position);
+                while (strchr("0123456789", **str)) {
+                    leadingDigits = true;
+                    ++(*str);
+                    ++(*position);
+                }
+            }
+            if (**str == '.') {
+                ++(*str);
+                ++(*position);
+                while (strchr("0123456789", **str)) {
+                    leadingDigits = true;
+                    ++(*str);
+                    ++(*position);
+                }
+            }
+            if (strchr("eE", **str) && leadingDigits) {
+                ++(*str);
+                ++(*position);
+                if (!strchr("+-", **str)) return 0;
+                ++(*str);
+                ++(*position);
+                while (strchr("0123456789", **str)) {
+                    ++(*str);
+                    ++(*position);
+                }
+            }
+            token->end = *position;
             break;
     }
     return 1;
 }
 
-void freeJSON(struct JSONToken* object){
-    if(object->child){
+void freeJSON(struct JSONToken* object) {
+    if (object->child) {
         freeJSON(object->child);
     }
-    if(object->next){
+    if (object->next) {
         freeJSON(object->next);
     }
     free(object);
