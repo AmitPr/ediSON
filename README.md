@@ -47,3 +47,4 @@ Carlos
 * 1/20: Continued working on texteditor (Karl)
 * 1/20: Start rewriting JSON Parser to use a tokenizer-like model instead (Uses less memory, simpler, more powerful) (Amit)
 * 1/21: Finish writing JSON Tokenizer for everything but numbers, bug fixes on tokenizer (Amit)
+* 1/22: Continued up to step 100; text editor is able to take in a file, cursor can move through the file, added a status bar and a msgbar (Eisuke & Karl)
