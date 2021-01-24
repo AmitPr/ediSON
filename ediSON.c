@@ -67,6 +67,8 @@ struct editorConfig {
 };
 struct editorConfig E;
 
+int errorLoc = -1;
+
 /** prototypes ***/
 void editorSetStatusMessage(const char *fmt, ...);
 void editorRefreshScreen();
@@ -468,15 +470,22 @@ void editorOpenJSON(char *filename) {
     buf[length] = '\0';
     char *buf_cpy = buf;
     struct JSONToken *tokenized = parseJSON(&buf_cpy);
-    char *formatted = getFormattedString(tokenized, &buf);
+    char *formatted;
+    if (!tokenized) {
+        formatted = buf;
+    } else {
+        formatted = getFormattedString(tokenized, &buf);
+    }
     char *pos = NULL;
     pos = strtok(formatted, "\n");
     while (pos != NULL) {
         editorInsertRow(E.numrows, pos, strlen(pos));
         pos = strtok(NULL, "\n");
     }
-    freeJSON(tokenized);
-    free(formatted);
+    if (tokenized) {
+        freeJSON(tokenized);
+        free(formatted);
+    }
     free(buf);
     E.dirty = 0;
 }
@@ -962,7 +971,7 @@ int main(int argc, char *argv[]) {
     enableRawMode();
     initEditor();
     if (argc >= 2) {
-        //fix to only use this for JSON files.
+        // fix to only use this for JSON files.
         editorOpenJSON(argv[1]);
     }
     // help msg with quit keybinds;
