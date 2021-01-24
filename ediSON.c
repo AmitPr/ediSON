@@ -25,6 +25,8 @@
 #define ediSON_QUIT_TIMES 1     // How many times the quit key must be pressed;
 #define CTRL_KEY(k) ((k)&0x1f)  // Macro fro ctrl with another key;
 
+int errorLoc = -1;
+
 enum editorKey {  // user arrow keys to move cursor
     BACKSPACE = 127,
     ARROW_LEFT = 1000,
@@ -38,9 +40,18 @@ enum editorKey {  // user arrow keys to move cursor
     PAGE_DOWN
 };
 
-enum editorHighlight { HL_NORMAL = 0, HL_NUMBER, HL_MATCH };
+enum editorHighlight { HL_NORMAL = 0, HL_STRING, HL_NUMBER, HL_MATCH };
+
+#define HL_HIGHLIGHT_NUMBERS (1 << 0)
+#define HL_HIGHLIGHT_STRINGS (1 << 1)
 
 /*** data ***/
+struct editorSyntax {
+    char *filetype;
+    char **filematch;
+    int flags;
+};
+
 typedef struct erow {
     int size;
     int rsize;  // contain size of the contents of render
@@ -62,12 +73,20 @@ struct editorConfig {
     int dirty;
     char *filename;      // save a copy of the filename here when a file opens;
     char statusmsg[80];  // msgs that we ask the user;
-    time_t statusmsg_time;            // timestamp for the msg;
+    time_t statusmsg_time;  // timestamp for the msg;
+    struct editorSyntax *syntax;
     struct termios orignal_termious;  // all of the canonical v. raw mode
 };
 struct editorConfig E;
 
-int errorLoc = -1;
+/*** filetypes ***/
+char *json_extensions[] = {".json", ".js", ".ts", NULL};
+
+struct editorSyntax HLDB[] = {
+    {"json", json_extensions, HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS},
+};
+
+#define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0]))
 
 /** prototypes ***/
 void editorSetStatusMessage(const char *fmt, ...);
@@ -229,20 +248,47 @@ int is_separator(int c) {
 void editorUpdateSyntax(erow *row) {
     row->hl = realloc(row->hl, row->rsize);
     memset(row->hl, HL_NORMAL, row->rsize);
-
+    if (E.syntax == NULL) return;
     int prev_sep = 1;
-
+    int in_string = 0;
     int i = 0;
+
     while (i < row->rsize) {
         char c = row->render[i];
         unsigned char prev_hl = (i > 0) ? row->hl[i - 1] : HL_NORMAL;
 
-        if ((isdigit(c) && (prev_sep || prev_hl == HL_NUMBER)) ||
-            (c == '.' && prev_hl == HL_NUMBER)) {
-            row->hl[i] = HL_NUMBER;
-            i++;
-            prev_sep = 0;
-            continue;
+        if (E.syntax->flags & HL_HIGHLIGHT_STRINGS) {
+            if (in_string) {
+                row->hl[i] = HL_STRING;
+
+                if (c == '\\' && i + 1 < row->rsize) {
+                    row->hl[i + 1] = HL_STRING;
+                    i += 2;
+                    continue;
+                }
+
+                if (c == in_string) in_string = 0;
+                i++;
+                prev_sep = 1;
+                continue;
+            } else {
+                if (c == '"' || c == '\'') {
+                    in_string = c;
+                    row->hl[i] = HL_STRING;
+                    i++;
+                    continue;
+                }
+            }
+        }
+
+        if (E.syntax->flags & HL_HIGHLIGHT_NUMBERS) {
+            if ((isdigit(c) && (prev_sep || prev_hl == HL_NUMBER)) ||
+                (c == '.' && prev_hl == HL_NUMBER)) {
+                row->hl[i] = HL_NUMBER;
+                i++;
+                prev_sep = 0;
+                continue;
+            }
         }
         prev_sep = is_separator(c);
         i++;
@@ -251,12 +297,39 @@ void editorUpdateSyntax(erow *row) {
 
 int editorSyntaxToColor(int hl) {
     switch (hl) {
+        case HL_STRING:
+            return 35;
         case HL_NUMBER:
             return 31;
         case HL_MATCH:
-            return 34;
+            return 36;
         default:
             return 37;
+    }
+}
+
+void editorSelectSyntaxHighlight() {
+    E.syntax = NULL;
+    if (E.filename == NULL) return;
+    char *ext = strrchr(E.filename, '.');
+    for (unsigned int j = 0; j < HLDB_ENTRIES; j++) {
+        struct editorSyntax *s = &HLDB[j];
+        unsigned int i = 0;
+        while (s->filematch[i]) {
+            int is_ext = (s->filematch[i][0] == '.');
+            if ((is_ext && ext && !strcmp(ext, s->filematch[i])) ||
+                (!is_ext && strstr(E.filename, s->filematch[i]))) {
+                E.syntax = s;
+
+                int filerow;
+                for (filerow = 0; filerow < E.numrows; filerow++) {
+                    editorUpdateSyntax(&E.row[filerow]);
+                }
+
+                return;
+            }
+            i++;
+        }
     }
 }
 
@@ -441,12 +514,11 @@ char *editorRowsToString(int *buflen) {
     }
     return buf;
 }
-
 void editorOpenJSON(char *filename) {
     free(E.filename);
     E.filename = strdup(filename);  // make copy of given string, allocating
                                     // memory and assuming we free memory;
-
+    editorSelectSyntaxHighlight();
     FILE *fp = fopen(filename, "r");
     if (!fp) {
         die("fopen");
@@ -495,6 +567,7 @@ void editorOpen(char *filename) {
     E.filename = strdup(filename);  // make copy of given string, allocating
                                     // memory and assuming we free memory;
 
+    editorSelectSyntaxHighlight();
     FILE *fp = fopen(filename, "r");
     if (!fp) {
         die("fopen");
@@ -521,6 +594,7 @@ void editorSave() {
             editorSetStatusMessage("Save aborted");
             return;
         }
+        editorSelectSyntaxHighlight();
     }
 
     int len;
@@ -682,12 +756,8 @@ void editorDrawRows(struct abuf *ab) {  // draws tilde on each row;
             }
         } else {
             int len = E.row[filerow].rsize - E.coloff;
-            if (len < 0) {
-                len = 0;
-            }
-            if (len > E.screencols) {
-                len = E.screencols;
-            }
+            if (len < 0) len = 0;
+            if (len > E.screencols) len = E.screencols;
             char *c = &E.row[filerow].render[E.coloff];
             unsigned char *hl = &E.row[filerow].hl[E.coloff];
             int current_color = -1;
@@ -707,8 +777,8 @@ void editorDrawRows(struct abuf *ab) {  // draws tilde on each row;
                         int clen =
                             snprintf(buf, sizeof(buf), "\x1b[%dm", color);
                         abAppend(ab, buf, clen);
-                        abAppend(ab, &c[j], 1);
                     }
+                    abAppend(ab, &c[j], 1);
                 }
             }
             abAppend(ab, "\x1b[39m", 5);
@@ -733,7 +803,9 @@ void editorDrawStatusBar(
         E.filename ? E.filename : "[No Name]", E.numrows,
         E.dirty ? "(modified)"
                 : "");  // if no file was given, we set statusbar to no name;
-    int rlen = snprintf(rstatus, sizeof(rstatus), "%d/%d", E.cy + 1, E.numrows);
+    int rlen =
+        snprintf(rstatus, sizeof(rstatus), "%s | %d/%d",
+                 E.syntax ? E.syntax->filetype : "no ft", E.cy + 1, E.numrows);
     if (len > E.screencols) {
         len = E.screencols;
     }
@@ -961,6 +1033,7 @@ void initEditor() {
     E.filename = NULL;      // set to null so if there's no file given;
     E.statusmsg[0] = '\0';  // empty so there's no default msg;
     E.statusmsg_time = 0;
+    E.syntax = NULL;
     if (getWindowSize(&E.screenrows, &E.screencols) == -1) {
         die("getWindowSize");
     }
@@ -972,6 +1045,7 @@ int main(int argc, char *argv[]) {
     initEditor();
     if (argc >= 2) {
         // fix to only use this for JSON files.
+        /* editorOpen(argv[1]); */
         editorOpenJSON(argv[1]);
     }
     // help msg with quit keybinds;
