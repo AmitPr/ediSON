@@ -302,8 +302,6 @@ void editorUpdateSyntax(erow *row) {
 
 int editorSyntaxToColor(int hl) {
   switch (hl) {
-  case HL_KEY: 
-    return 34;
   case HL_STRING:
     return 35;
   case HL_NUMBER:
