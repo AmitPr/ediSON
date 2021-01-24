@@ -1,7 +1,7 @@
 #include "JSONTokenizer.h"
 
 struct JSONToken* parseJSON(char** str) {
-    uint position = 0;
+    int position = 0;
     struct JSONToken* root = createEmptyToken();
     if (!tokenize(str, &position, root)) {
         return 0;
@@ -9,7 +9,7 @@ struct JSONToken* parseJSON(char** str) {
     return root;
 }
 
-int tokenize(char** str, uint* position, struct JSONToken* token) {
+int tokenize(char** str, int* position, struct JSONToken* token) {
     skipWhitespace(str, position);
     char first = **str;
     token->start = *position;
@@ -25,7 +25,7 @@ int tokenize(char** str, uint* position, struct JSONToken* token) {
             ++(*str);
             ++(*position);
             curPair->keyStart = *position;
-            uint ret = skipKey(str, position);
+            int ret = skipKey(str, position);
             if (!ret) {
                 // malformed key
                 return 0;
@@ -109,7 +109,7 @@ struct JSONToken* createEmptyToken() {
     }
 }
 
-int tokenizeValue(struct JSONToken* token, char** str, uint* position) {
+int tokenizeValue(struct JSONToken* token, char** str, int* position) {
     switch (**str) {
         // String
         case '"':

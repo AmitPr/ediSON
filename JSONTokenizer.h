@@ -29,8 +29,8 @@ typedef struct JSONToken {
 } JSONToken;
 
 struct JSONToken* parseJSON(char** str);
-int tokenize(char** str, uint* position, struct JSONToken* token);
-int tokenizeValue(struct JSONToken* token, char** str, uint* position);
+int tokenize(char** str, int* position, struct JSONToken* token);
+int tokenizeValue(struct JSONToken* token, char** str, int* position);
 struct JSONToken* createEmptyToken();
 void printJSON(struct JSONToken* object, char** str, FILE* fp);
 void printHelper(struct JSONToken* object, char** str, int indent, FILE* fp);

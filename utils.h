@@ -2,5 +2,5 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-void skipWhitespace(char** buf, uint* position);
-uint skipKey(char** buf, uint* position);
+void skipWhitespace(char** buf, int* position);
+int skipKey(char** buf, int* position);
