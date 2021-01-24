@@ -1,9 +1,11 @@
 #include "JSONTokenizer.h"
-
+extern int errorLoc;
 struct JSONToken* parseJSON(char** str) {
+    errorLoc = -1;
     int position = 0;
     struct JSONToken* root = createEmptyToken();
     if (!tokenize(str, &position, root)) {
+        freeJSON(root);
         return 0;
     }
     return root;
@@ -20,7 +22,11 @@ int tokenize(char** str, int* position, struct JSONToken* token) {
         token->type = TYPE_object;
         struct JSONToken* last = NULL;
         while (**str != '}') {
-            if (**str != '"') return 0;
+            if (**str != '"') {
+                if (last) freeJSON(last);
+                setErrorLoc(*position);
+                return 0;
+            }
             struct JSONToken* curPair = createEmptyToken();
             ++(*str);
             ++(*position);
@@ -28,10 +34,16 @@ int tokenize(char** str, int* position, struct JSONToken* token) {
             int ret = skipKey(str, position);
             if (!ret) {
                 // malformed key
+                freeJSON(curPair);
+                setErrorLoc(*position);
                 return 0;
             }
             curPair->keyEnd = ret;
-            tokenizeValue(curPair, str, position);
+            if (!tokenizeValue(curPair, str, position)) {
+                freeJSON(curPair);
+                setErrorLoc(*position);
+                return 0;
+            }
             skipWhitespace(str, position);
             char cur = **str;
             ++(*str);
@@ -45,6 +57,8 @@ int tokenize(char** str, int* position, struct JSONToken* token) {
                     }
                     break;
                 }
+                freeJSON(curPair);
+                setErrorLoc(*position);
                 return 0;
             }
             skipWhitespace(str, position);
@@ -64,7 +78,11 @@ int tokenize(char** str, int* position, struct JSONToken* token) {
         struct JSONToken* last = NULL;
         while (**str != ']') {
             struct JSONToken* curVal = createEmptyToken();
-            if (!tokenizeValue(curVal, str, position)) return 0;
+            if (!tokenizeValue(curVal, str, position)) {
+                freeJSON(curVal);
+                setErrorLoc(*position);
+                return 0;
+            }
             skipWhitespace(str, position);
             char cur = **str;
             ++(*str);
@@ -78,6 +96,8 @@ int tokenize(char** str, int* position, struct JSONToken* token) {
                     }
                     break;
                 }
+                freeJSON(curVal);
+                setErrorLoc(*position);
                 return 0;
             }
             skipWhitespace(str, position);
@@ -93,6 +113,8 @@ int tokenize(char** str, int* position, struct JSONToken* token) {
             ++(*position);
         }
     } else {
+        freeJSON(token);
+        setErrorLoc(*position);
         return 0;
     }
     return 1;
@@ -105,6 +127,7 @@ struct JSONToken* createEmptyToken() {
         return token;
     } else {
         // ERROR ALLOCATING MEMORY
+        freeJSON(token);
         return 0;
     }
 }
@@ -168,6 +191,10 @@ int tokenizeValue(struct JSONToken* token, char** str, int* position) {
             break;
         case '[':
             token->type = TYPE_array;
+            token->start = *position;
+            if (!tokenize(str, position, token)) return 0;
+            token->end = *position;
+            break;
         case '{':
             token->type = TYPE_object;
             token->start = *position;
@@ -236,7 +263,7 @@ void printHelper(struct JSONToken* object, char** str, int indent, FILE* fp) {
     printIndent(indent, fp);
     if (object->keyEnd != -1) {
         fprintf(fp, "\"%.*s\": ", object->keyEnd - object->keyStart,
-               (*str) + object->keyStart);
+                (*str) + object->keyStart);
     }
     switch (object->type) {
         case TYPE_object:
@@ -283,7 +310,12 @@ char* getFormattedString(struct JSONToken* object, char** str) {
     if (!bp) {
         return NULL;
     }
-    printJSON(object,str,bp);
+    printJSON(object, str, bp);
     fclose(bp);
     return buf;
+}
+void setErrorLoc(int loc) {
+    if (errorLoc == -1) {
+        errorLoc = loc;
+    }
 }
