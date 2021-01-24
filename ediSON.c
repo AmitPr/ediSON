@@ -47,9 +47,10 @@ enum editorHighlight { HL_NORMAL = 0, HL_STRING, HL_NUMBER, HL_MATCH };
 
 /*** data ***/
 struct editorSyntax {
-    char *filetype;
-    char **filematch;
-    int flags;
+  char *filetype;
+  char **filematch;
+  char *key;
+  int flags;
 };
 
 typedef struct erow {
@@ -83,7 +84,7 @@ struct editorConfig E;
 char *json_extensions[] = {".json", ".js", ".ts", NULL};
 
 struct editorSyntax HLDB[] = {
-    {"json", json_extensions, HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS},
+    {"json", json_extensions, "Break", HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS},
 };
 
 #define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0]))
