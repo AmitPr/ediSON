@@ -229,48 +229,61 @@ void freeJSON(struct JSONToken* object) {
     free(object);
 }
 
-void printJSON(struct JSONToken* object, char** str) {
-    printHelper(object, str, 0);
+void printJSON(struct JSONToken* object, char** str, FILE* fp) {
+    printHelper(object, str, 0, fp);
 }
-void printHelper(struct JSONToken* object, char** str, int indent) {
-    printIndent(indent);
+void printHelper(struct JSONToken* object, char** str, int indent, FILE* fp) {
+    printIndent(indent, fp);
     if (object->keyEnd != -1) {
-        printf("\"%.*s\": ", object->keyEnd - object->keyStart,
+        fprintf(fp, "\"%.*s\": ", object->keyEnd - object->keyStart,
                (*str) + object->keyStart);
     }
     switch (object->type) {
         case TYPE_object:
             if (object->child) {
-                printf("{\n");
-                printHelper(object->child, str, indent + 1);
-                printIndent(indent);
-                printf("}");
+                fprintf(fp, "{\n");
+                printHelper(object->child, str, indent + 1, fp);
+                printIndent(indent, fp);
+                fprintf(fp, "}");
             } else {
-                printf("{}");
+                fprintf(fp, "{}");
             }
             break;
         case TYPE_array:
             if (object->child) {
-                printf("[\n");
-                printHelper(object->child, str, indent + 1);
-                printIndent(indent);
-                printf("]");
+                fprintf(fp, "[\n");
+                printHelper(object->child, str, indent + 1, fp);
+                printIndent(indent, fp);
+                fprintf(fp, "]");
             } else {
-                printf("[]");
+                fprintf(fp, "[]");
             }
             break;
         default:
-            printf("%.*s", object->end - object->start, (*str) + object->start);
+            fprintf(fp, "%.*s", object->end - object->start,
+                    (*str) + object->start);
             break;
     }
     if (object->next) {
-        printf(",\n");
-        printHelper(object->next, str, indent);
+        fprintf(fp, ",\n");
+        printHelper(object->next, str, indent, fp);
     } else {
-        printf("\n");
+        fprintf(fp, "\n");
     }
 }
 
-void printIndent(int indent) {
-    for (int i = indent; i > 0; --i) printf("\t");
+void printIndent(int indent, FILE* fp) {
+    for (int i = indent; i > 0; --i) fprintf(fp, "\t");
+}
+
+char* getFormattedString(struct JSONToken* object, char** str) {
+    char* buf;
+    size_t buf_size;
+    FILE* bp = open_memstream(&buf, &buf_size);
+    if (!bp) {
+        return NULL;
+    }
+    printJSON(object,str,bp);
+    fclose(bp);
+    return buf;
 }

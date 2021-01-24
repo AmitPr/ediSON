@@ -3,14 +3,14 @@
 CC=gcc
 CFLAGS= -g -Wall -Wextra -Wpedantic -Wuninitialized -Wundef -Wcast-align -Wstrict-overflow=2 -Wwrite-strings -Wno-format-nonliteral
 BINARY=ediSON 
-OBJECTS=ediSON.o JSONTokenizer.o utils.o
+OBJECTS=editor.o JSONTokenizer.o utils.o
 LFLAGS= -lasan
 
 $(BINARY): $(OBJECTS)
 	$(CC) -o $(BINARY) $(OBJECTS) $(LFLAGS)
 
-ediSON.o: ediSON.c JSONTokenizer.o utils.o
-	$(CC) $(CFLAGS) -c ediSON.c
+editor.o: editor.c JSONTokenizer.o utils.o
+	$(CC) $(CFLAGS) -c editor.c
 JSONTokenizer.o: JSONTokenizer.c utils.o
 	$(CC) $(CFLAGS) -c JSONTokenizer.c
 utils.o: utils.c

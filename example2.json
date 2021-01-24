@@ -1,10 +1,1 @@
-{
-    "boolT": true,
-    "boolF": false,
-    "nil": null,
-    "string": "hello!",
-    "name": "example",
-    "ext": "json",
-    "object":{   },
-    "array": ["Inside","Array"]
-}
+{"string":"hello!","number":3,"object":{"name":"example","ext":"json"},"array":[1,2,3,4,"str"],"booleanT":true,"booleanF":false,"null":null}
