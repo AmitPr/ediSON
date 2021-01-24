@@ -3,8 +3,8 @@
 #define _BSD_SOURCE
 #define _GNU_SOURCE
 
-#include <ctype.h>
-#include <errno.h>
+#include <ctype.h> //for keys and nonprintable chars;
+#include <errno.h>//for program failure, errors'
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -12,18 +12,17 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include <termios.h>
-#include <time.h>
+#include <termios.h> //for terminal attributes;
+#include <time.h> //add timestamps for msgs;
 #include <unistd.h>
 
 /*** defines ***/
-#define ediSON "0.0.0.1"
-#define ediSON_TAB_STOP 4
-#define ediSON_QUIT_TIMES 2
+#define ediSON "0.0.0.1" //welcome msg;
+#define ediSON_TAB_STOP 4 //make length of length of a tab constant;
+#define ediSON_QUIT_TIMES 2 
+#define CTRL_KEY(k) ((k)&0x1f) // ctrl + q to exit;
 
-#define CTRL_KEY(k) ((k)&0x1f)
-
-enum editorKey {
+enum editorKey { //user arrow keys to move cursor
   BACKSPACE = 127,
   ARROW_LEFT = 1000,
   ARROW_RIGHT,
@@ -36,68 +35,80 @@ enum editorKey {
   PAGE_DOWN
 };
 
+enum editorHighlight { HL_NORMAL = 0, HL_NUMBER, HL_MATCH };
+
 /*** data ***/
 typedef struct erow {
   int size;
-  int rsize;
+  int rsize; // contain size of the contents of render
   char *chars;
-  char *render;
+  char *render; //contain the actual chars to draw
+  unsigned char *hl;
 } erow;
 
 struct editorConfig {
-  int cx, cy;
-  int rx;
+  int cx, cy; // cursor's x,y position;
+  int rx; // index into the render field; not all chars have same width, this
+          // compensates for it;
   int rowoff;
   int coloff;
-  int screenrows;
-  int screencols;
+  int screenrows; // terminal's # of rows
+  int screencols; // terminal's # of columns
   int numrows;
   erow *row;
   int dirty;
-  char statusmsg[80];
-  time_t statusmsg_time;
-  char *filename;
-  struct termios orignal_termious;
+  char *filename;        // save a copy of the filename here when a file opens;
+  char statusmsg[80];    // msgs that we ask the user;
+  time_t statusmsg_time; // timestamp for the msg;
+  struct termios orignal_termious; // all of the canonical v. raw mode
 };
 struct editorConfig E;
 
-/*** prototypes ***/
+/** prototypes ***/
 void editorSetStatusMessage(const char *fmt, ...);
 void editorRefreshScreen();
 char *editorPrompt(char *prompt, void (*callback)(char *, int));
 
 /*** terminal ***/
-void die(const char *s) {
-  write(STDOUT_FILENO, "\x1b[2J", 4);
+void die(const char *s) { // anytime error, print descriptive msg;
+  write(STDOUT_FILENO, "\x1b[2J",
+        4); // clear screen and reposition cursor when program exits
   write(STDOUT_FILENO, "\x1b[H", 3);
   perror(s);
   exit(1);
 }
 
-void disableRawMode() {
+void disableRawMode() { // sets terminal to its original attributes (canonical
+                        // mode);
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orignal_termious) == -1) {
     die("tcgetattr");
   }
 }
 
-void enableRawMode() {
+void enableRawMode() { // rawmode (texteditor mode, unlike canonical mode);
   if (tcgetattr(STDIN_FILENO, &E.orignal_termious) == -1) {
     die("tcgetattr");
   }
-  atexit(disableRawMode);
+  atexit(disableRawMode); // when program exits, set to original;
 
   struct termios raw = E.orignal_termious;
-  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-  raw.c_oflag &= ~(OPOST);
-  raw.c_cflag |= ~(CS8);
-  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); // reads byte by byte
-  raw.c_cc[VMIN] = 0;
-  raw.c_cc[VTIME] = 1;
+  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP |
+                   IXON); // disables ctrl-s and ctrl-q; fixes ctrl-m; turn off
+                          // unnecessary flags;
+  raw.c_oflag &=
+      ~(OPOST); // turn off output processing features (carriage return);
+  raw.c_cflag |= ~(CS8); // turn off unnecessary flags
+  raw.c_lflag &=
+      ~(ECHO | ICANON | IEXTEN | ISIG); // modify struct; turn off canonical
+                                        // mode; disable ctrl-c, ctrl-z, ctrl-v;
+  raw.c_cc[VMIN] = 0;  // read() returns as soon as any input is put in
+  raw.c_cc[VTIME] = 1; // output prints 0 anytime there's no input
 
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
     die("tcgetattr");
   }
 }
+
 int editorReadKey() {
   int nread;
   char c;
@@ -207,6 +218,45 @@ int getWindowSize(int *rows, int *cols) {
   }
 }
 
+/*** syntax highlighting ***/
+int is_separator(int c) {
+  return isspace(c) || c == '\0' || strchr(",.()+-/*=~%<>[];", c) != NULL;
+}
+
+void editorUpdateSyntax(erow *row) {
+  row->hl = realloc(row->hl, row->rsize);
+  memset(row->hl, HL_NORMAL, row->rsize);
+
+  int prev_sep = 1;
+
+  int i = 0;
+  while (i < row->rsize) {
+    char c = row->render[i];
+    unsigned char prev_hl = (i > 0) ? row->hl[i - 1] : HL_NORMAL;
+
+    if ((isdigit(c) && (prev_sep || prev_hl == HL_NUMBER)) ||
+        (c == '.' && prev_hl == HL_NUMBER)) {
+      row->hl[i] = HL_NUMBER;
+      i++;
+      prev_sep = 0;
+      continue;
+    }
+    prev_sep = is_separator(c);
+    i++;
+  }
+}
+
+int editorSyntaxToColor(int hl) {
+  switch (hl) {
+  case HL_NUMBER:
+    return 31;
+  case HL_MATCH:
+    return 34;
+  default:
+    return 37;
+  }
+}
+
 /*** row operations ***/
 int editorRowCxToRx(erow *row, int cx) {
   int rx = 0;
@@ -253,6 +303,7 @@ void editorUpdateRow(erow *row) {
   }
   row->render[idx] = '\0';
   row->rsize = idx;
+  editorUpdateSyntax(row);
 }
 
 void editorInsertRow(int at, char *s, size_t len) {
@@ -269,6 +320,7 @@ void editorInsertRow(int at, char *s, size_t len) {
 
   E.row[at].rsize = 0;
   E.row[at].render = NULL;
+  E.row[at].hl = NULL;
   editorUpdateRow(&E.row[at]);
 
   E.numrows++;
@@ -278,6 +330,7 @@ void editorInsertRow(int at, char *s, size_t len) {
 void editorFreeRow(erow *row) {
   free(row->render);
   free(row->chars);
+  free(row->hl);
 }
 
 void editorDelRow(int at) {
@@ -442,6 +495,14 @@ void editorFindCallback(char *query, int key) {
   static int last_match = -1;
   static int direction = 1;
 
+  static int saved_hl_line;
+  static char *saved_hl = NULL;
+  if (saved_hl) {
+    memcpy(E.row[saved_hl_line].hl, saved_hl, E.row[saved_hl_line].rsize);
+    free(saved_hl);
+    saved_hl = NULL;
+  }
+
   if (key == '\r' || key == '\x1b') {
     last_match = -1;
     direction = 1;
@@ -474,6 +535,11 @@ void editorFindCallback(char *query, int key) {
       E.cy = current;
       E.cx = editorRowRxToCx(row, match - row->render);
       E.rowoff = E.numrows;
+
+      saved_hl_line = current;
+      saved_hl = malloc(row->rsize);
+      memcpy(saved_hl, row->hl, row->rsize);
+      memset(&row->hl[match - row->render], HL_MATCH, strlen(query));
       break;
     }
   }
@@ -569,7 +635,29 @@ void editorDrawRows(struct abuf *ab) {
       if (len > E.screencols) {
         len = E.screencols;
       }
-      abAppend(ab, &E.row[filerow].render[E.coloff], len);
+      char *c = &E.row[filerow].render[E.coloff];
+      unsigned char *hl = &E.row[filerow].hl[E.coloff];
+      int current_color = -1;
+      int j;
+      for (j = 0; j < len; j++) {
+        if (hl[j] == HL_NORMAL) {
+          if (current_color != -1) {
+            abAppend(ab, "\x1b[39m", 5);
+            current_color = -1;
+          }
+          abAppend(ab, &c[j], 1);
+        } else {
+          int color = editorSyntaxToColor(hl[j]);
+          if (color != current_color) {
+            current_color = color;
+            char buf[16];
+            int clen = snprintf(buf, sizeof(buf), "\x1b[%dm", color);
+            abAppend(ab, buf, clen);
+            abAppend(ab, &c[j], 1);
+          }
+        }
+      }
+      abAppend(ab, "\x1b[39m", 5);
     }
     abAppend(ab, "\x1b[K", 3);
     abAppend(ab, "\r\n", 2);

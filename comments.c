@@ -21,6 +21,7 @@
 #define CTRL_KEY(k) ((k)&0x1f) //ctrl + q to exit;
 
 enum editorKey { //use arrow keys to move cursor;
+  BACKSPACE = 127,
   ARROW_LEFT = 1000,
   ARROW_RIGHT,
   ARROW_UP,
@@ -32,10 +33,11 @@ enum editorKey { //use arrow keys to move cursor;
   PAGE_DOWN
 };
 
+enum editorHighlight { HL_NORMAL = 0, HL_NUMBER, HL_MATCH };
+
 /*** data ***/
 typedef struct erow {
   int size;
-  int rsize; //contain size of the contents of render
   char *chars;
   char *render; //contain the actual chars to draw
 } erow;
