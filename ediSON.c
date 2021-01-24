@@ -47,6 +47,7 @@ enum editorHighlight { HL_NORMAL = 0, HL_STRING, HL_NUMBER, HL_MATCH };
 struct editorSyntax {
   char *filetype;
   char **filematch;
+  char *key;
   int flags;
 };
 
@@ -81,7 +82,7 @@ struct editorConfig E;
 char *json_extensions[] = {".json", ".js", ".ts", NULL};
 
 struct editorSyntax HLDB[] = {
-    {"json", json_extensions, HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS},
+    {"json", json_extensions, "Break", HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS},
 };
 
 #define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0]))
@@ -301,6 +302,8 @@ void editorUpdateSyntax(erow *row) {
 
 int editorSyntaxToColor(int hl) {
   switch (hl) {
+  case HL_KEY: 
+    return 34;
   case HL_STRING:
     return 35;
   case HL_NUMBER:
