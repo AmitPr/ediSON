@@ -16,11 +16,8 @@ JSON, or JavaScript Object Notation, is a format that has widespread use in vari
 Amit
 * JSON Parser/Serializer  
 
-Eisuke
-* CLI Editor  
-
-Carlos
-* Working with files  
+Eisuke & Carlos
+* CLI Editor
 
 ### Data Structures used:
 * Structs for JSON Nodes
@@ -28,11 +25,13 @@ Carlos
 * Variable Length Strings for representing each line and for representing JSON strings
 
 ## Timeline:
-* 1/14 Finish Basic Json Parser/Serializer
-* 1/17 Finish CLI for editing any file
-* 1/19 Finish adding features specific to json files
-## Prerequisites:
-* None (At the moment)
+* 1/17 Finish Basic Json Parser/Serializer, Finish setup for Text Editor
+* 1/19 Add Raw mode
+* 1/20 Add input + output
+* 1/21 Add the viewer + editor
+* 1/22 Add search
+* 1/23 Finish CLI for editing any file
+* 1/24 Finish project
 
 ## Instructions:
 *N/A*
@@ -48,3 +47,5 @@ Carlos
 * 1/20: Start rewriting JSON Parser to use a tokenizer-like model instead (Uses less memory, simpler, more powerful) (Amit)
 * 1/21: Finish writing JSON Tokenizer for everything but numbers, bug fixes on tokenizer (Amit)
 * 1/22: Continued up to step 100; text editor is able to take in a file, cursor can move through the file, added a status bar and a msgbar (Eisuke & Karl)
+* 1/23: Continued up to step 156; adding syntax highlighting with digits, able to edit any file (Karl); 
+* 1/24: Finished text editor, added syntax highlighting with strings, keys specifically, elements of array, line-numbering, integrated JSON tokenizer with texteditor (Eisuke, Karl, Amit)
