@@ -11,6 +11,13 @@ After cloning and `cd`-ing into the cloned directory:
 make #Generates ./ediSON executable.
 ./ediSON example.json #Or any other file that you'd like to edit.
 ```
+### Editor Usage:
+Editor uses arrow keys for cursor position, including HOME and END keys. Editor also supports editing non JSON files, but will have extra functionality enabled on JSON files.
+Shortcuts:  
+* `CTRL-S` - Save the file
+* `CTRL-Q` - Quit the editor (must press twice to quit unsaved file)
+* `CTRL-F` - Find a piece of text
+* `CTRL-P`- Format a JSON file, will only succeed if all errors have been fixed.
 
 ## How did we make it?
 ### Topics used:
@@ -56,3 +63,7 @@ Eisuke & Carlos
 * 1/24: Patched several memory leaks in JSON Parser/Serializer (Amit)  
 * 1/24: Finished text editor, added syntax highlighting with strings, JSON keys, elements of array, line-numbering. (Eisuke, Karl, Amit)  
 * 1/24: Integrated text editor and JSON Parser/Serializer, Error highlighting (Eisuke, Karl, Amit)  
+
+## Known Issues  
+* Uses POSIX C libraries, so a POSIX compatible system is necessary. For more information, see `man open_memstream`, which is the specific function from POSIX C.
+* The JSON Tokenizer has been thoroughly tested for memory leaks, and double frees. However, there may be some very specific sequences of actions that may not have been caught. This should not be a real issue. Just for posterity, it's important to note this possible issue.
