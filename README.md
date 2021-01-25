@@ -25,6 +25,7 @@ Shortcuts:
 * Memory Allocation - Allocating memory to represent JSON at runtime, as well as storing rows for the editor. Opening memory blocks as `FILE*` objects using `open_memstream`.
 * File stats - Displaying useful information such as last modified time, and file size.
 * Signals - CLI Editor goes into terminal raw-mode to intercept signals.
+* Credit goes to the [kilo booklet](https://viewsourcecode.org/snaptoken/kilo/) for a tutorial on the basic text editor functionalities.
 
 ### Breakdown of who did what:
 Amit
@@ -73,6 +74,7 @@ $ make clean
 * 1/24: Patched several memory leaks in JSON Parser/Serializer (Amit)
 * 1/24: Finished text editor, added syntax highlighting with strings, JSON keys, elements of array, line-numbering. (Eisuke, Karl, Amit)
 * 1/24: Integrated text editor and JSON Parser/Serializer, Error highlighting (Eisuke, Karl, Amit)
+* 1/25: Added File statistics (Eisuke)
 
 ## Known Issues
 * Uses POSIX C libraries, so a POSIX compatible system is necessary. For more information, see `man open_memstream`, which is the specific function from POSIX C.
