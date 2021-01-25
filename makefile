@@ -11,10 +11,10 @@ ARGS=ediSON.c
 $(BINARY): $(OBJECTS)
 	$(CC) -o $(BINARY) $(OBJECTS) $(LFLAGS)
 
-ediSON.o: ediSON.c JSONTokenizer.o utils.o
+ediSON.o: ediSON.c JSONTokenizer.h utils.h
 	$(CC) $(CFLAGS) -c ediSON.c
 
-JSONTokenizer.o: JSONTokenizer.c utils.o
+JSONTokenizer.o: JSONTokenizer.c utils.h
 	$(CC) $(CFLAGS) -c JSONTokenizer.c
 
 utils.o: utils.c
