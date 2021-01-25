@@ -37,3 +37,4 @@ void printHelper(struct JSONToken* object, char** str, int indent, FILE* fp);
 void printIndent(int indent, FILE* fp);
 char* getFormattedString(struct JSONToken* object, char** str);
 void freeJSON(struct JSONToken* object);
+void setErrorLoc(int loc);

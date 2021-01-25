@@ -23,7 +23,6 @@ int tokenize(char** str, int* position, struct JSONToken* token) {
         struct JSONToken* last = NULL;
         while (**str != '}') {
             if (**str != '"') {
-                if (last) freeJSON(last);
                 setErrorLoc(*position);
                 return 0;
             }
