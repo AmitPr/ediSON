@@ -26,7 +26,7 @@
 
 int errorLoc = -1;
 
-enum editorKey { // user arrow keys to move cursor
+enum editorKey { // use arrow keys to move cursor
   BACKSPACE = 127,
   ARROW_LEFT = 1000,
   ARROW_RIGHT,
@@ -88,6 +88,7 @@ struct editorConfig {
   struct editorSyntax *syntax;
   struct termios orignal_termious; // all of the canonical v. raw mode
 };
+
 struct editorConfig E;
 
 /*** filetypes ***/
@@ -590,6 +591,7 @@ char *editorRowsToString(int *buflen) {
   }
   return buf;
 }
+
 void editorOpenJSON(char *filename) {
   free(E.filename);
   E.filename = strdup(filename); // make copy of given string, allocating
@@ -1185,8 +1187,6 @@ int main(int argc, char *argv[]) {
   enableRawMode();
   initEditor();
   if (argc >= 2) {
-    // fix to only use this for JSON files.
-    /* editorOpen(argv[1]); */
     if (strstr(argv[1], ".json") != NULL) {
       editorOpenJSON(argv[1]);
     } else {
