@@ -1,7 +1,8 @@
 .POSIX:
 .PHONY: run clean
 CC=gcc
-CFLAGS= -g -Wall -Wextra -Wpedantic -Wuninitialized -Wundef -Wcast-align -Wstrict-overflow=2 -Wwrite-strings -Wno-format-nonliteral
+CFLAGS= -Wall -Wextra -Wpedantic
+# CFLAGS= -g -Wall -Wextra -Wpedantic -Wuninitialized -Wundef -Wcast-align -Wstrict-overflow=2 -Wwrite-strings -Wno-format-nonliteral
 BINARY=ediSON 
 OBJECTS=ediSON.o JSONTokenizer.o utils.o
 LFLAGS= -lasan
@@ -24,3 +25,4 @@ run: $(BINARY)
 
 clean:
 	rm *.o $(BINARY)
+	reset
