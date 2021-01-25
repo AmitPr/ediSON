@@ -1148,9 +1148,14 @@ void editorDrawStatusBar(
 
   struct stat sb;
   stat(E.filename, &sb);
+  time_t t = sb.st_atime;
+  struct tm lt;
+  localtime_r(&t, &lt);
+  char timbuf[80];
+  strftime(timbuf, sizeof(timbuf), "%c", &lt);
   int len = snprintf(
-      status, sizeof(status), "%.20s - Last access: %ld, File size: %ld %s",
-      E.filename ? E.filename : "[No Name]", sb.st_atime, sb.st_size,
+      status, sizeof(status), "%.20s - Last access: %s, File size: %ld %s",
+      E.filename ? E.filename : "[No Name]", timbuf, sb.st_size,
       E.dirty ? "(modified)"
               : ""); // if no file was given, we set statusbar to no name;
   int rlen =
