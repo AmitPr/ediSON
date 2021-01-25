@@ -1,18 +1,18 @@
 {
-    "string": "hello!",
-    "number": 3,
-    "object": {
-        "name": "example",
-        "ext": "json"
-    },
-    "array": [
-        1,
-        2,
-        3,
-        4,
-        "str"
-    ],
-    "booleanT": true,
-    "booleanF": false,
-    "null": null
+	"string": "hello!",
+	"number": 3,
+	"object": {
+		"name": "example",
+		"ext": "json"
+	},
+	"array": [
+		1,
+		2,
+		3,
+		4,
+		"str"
+	],
+	"booleanT": true,
+	"booleanF": false,
+	"null": null
 }
